@@ -1,0 +1,21 @@
+{
+  "name": "jsfm-concatenator",
+  "description": "Concatenate all js in one",
+  "keywords": [
+    "javascript",
+	"file",
+	"manager",
+    "util",
+    "browser"
+  ],
+
+  "author": {
+    "name": "anoopchaurasia",
+    "email": "anoop26667@gmail.com"
+  },
+  "dependencies": {
+    "uglify-js": "*",
+    "commander": "*"
+  },
+  "main" : "concate.js"
+}
