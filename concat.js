@@ -137,11 +137,6 @@ function Concatenation( sourceDir, destinDir ) {
 			temp1.push("js.bundle.ceb.asset"+ (kk++) +" = "+ k.substring(strlen));
 		}
 		//console.log(temp1);
-		fs.writeFileSync("abcdmin.js", temp1.join("\n"), 'utf8',
-			function(e) {
-				//console.log(e);
-			}
-		);
 		//fs.writeFileSync(destinDir + dFile, concatenatedString, 'utf8', function( e ) {
 			//console.log("response", e, arguments);
 		//});
