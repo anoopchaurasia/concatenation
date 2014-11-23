@@ -1,6 +1,5 @@
 var fs = require('fs');
-var jsp = require("uglify-js").parser;
-var pro = require("uglify-js").uglify;
+var UglifyJS = require("uglify-js");
 var commander = require('commander');
 var uglifyjs =  require("uglify-js");
 var IncludedInside = [], circulerReference = {};
@@ -96,7 +95,7 @@ function Concatenation( sourceDir, destinDir ) {
 			try {
 				var fileData = fs.readFileSync(path).toString('utf-8');
 				updateFile(path, fileData);
-				saveminiFied(executeFile(fileData, updateFile, filepath), filepath);
+				executeFile(fileData, updateFile, filepath);
 			}
 			catch (e) {
 				console.error(e.stack);
@@ -125,10 +124,12 @@ function Concatenation( sourceDir, destinDir ) {
 		deleteFile(destinDir + dFile);
 
 		concatenatedString += "";
+
 		ConcatenatedFiles = concate;
 		for ( var i = 0; i < sFiles.length; i++) {
 			processFile(sourceDir + sFiles[i], updatefile, sFiles[i]);
 		}
+
 		concatenatedString += ";\n\n fm.isConcatinated = false;\n";
 		var temp1 = [];
 		var kk = 100, strlen = sourceDir.length;
@@ -144,7 +145,7 @@ function Concatenation( sourceDir, destinDir ) {
 		//fs.writeFileSync(destinDir + dFile, concatenatedString, 'utf8', function( e ) {
 			//console.log("response", e, arguments);
 		//});
-		//saveminiFied(concatenatedString, dFile);
+		saveminiFied(concatenatedString, dFile);
 		var s, fname;
 		while (IncludedInside.length) {
 			fname = IncludedInside.pop();
@@ -159,12 +160,10 @@ function Concatenation( sourceDir, destinDir ) {
 	function saveminiFied(data, dFile){
 		mkdir(dFile.substring(0, dFile.lastIndexOf("/")), destinDir);
 		console.log("saveminiFied", destinDir, dFile);
-		var ast = jsp.parse(data); // parse code and get the initial AST
-		ast = pro.ast_mangle(ast); // get a new AST with mangled names
-		ast = pro.ast_squeeze(ast); // get an AST with compression optimizations
-		var final_code = pro.gen_code(ast); // compressed code here
-		final_code = final_code + ";\nfm.isMinified=true;\n";
-		fs.writeFileSync(destinDir + dFile.replace(".js", "-") + "min.js", final_code, 'utf8',
+		//if(!jsp) {console.log("fg");return;}
+		var final_code = UglifyJS.minify(data, {fromString: true}); // parse code and get the initial AST
+		final_code = data + ";\nfm.isMinified=true;\n";
+		fs.writeFileSync(destinDir + dFile.replace(".js", ".js-") + "min.js", final_code, 'utf8',
 			function(e) {
 				console.log(e);
 		});
@@ -198,7 +197,6 @@ function createJFM( lastRun ) {
 			result = result[1];
 			result = result.substring(1, result.length - 1).split(",")[1];
 			if (result) {
-				imports.unshift('base');
 				result = result.substring(1).split(".");
 				imports.push(result[result.length - 1]);
 			}
@@ -209,7 +207,6 @@ function createJFM( lastRun ) {
 					result = result[1];
 					result = result.substring(1, result.length - 1).split(",")[1];
 					if (result) {
-						imports.unshift('base');
 						result = result.substring(1).split(".");
 						imports.push(result[result.length - 1]);
 					}
