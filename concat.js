@@ -163,7 +163,7 @@ function Concatenation( sourceDir, destinDir ) {
 		//if(!jsp) {console.log("fg");return;}
 		var final_code = UglifyJS.minify(data, {fromString: true}); // parse code and get the initial AST
 		final_code = data + ";\nfm.isMinified=true;\n";
-		fs.writeFileSync(destinDir + dFile.replace(".js", ".js-") + "min.js", final_code, 'utf8',
+		fs.writeFileSync(destinDir + dFile.replace(".js", ".js") + "min.js", final_code, 'utf8',
 			function(e) {
 				console.log(e);
 		});
