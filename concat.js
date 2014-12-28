@@ -41,12 +41,12 @@ function Concatenation( sourceDir, destinDir ) {
 			}
 		}
 
-		reg = /fm.include\((.*?)\)/gi;
+		reg = /fm.include\((.*?)(function|\))/gi;
 		var index,temp;
 		while (result = reg.exec(d)) {
 			index = result.index;
 			result = result[1];
-			result = result.substring(1, result.length - 1).replace(/\./g, "/") + ".js";
+			result = result.substring(1, result.length - 1).replace(/\./g, "/").replace('"',"") + ".js";
 			if (index > classIndex) {
 				temp = result.split(",")[0];
 				if(temp.match(/"/gm) == null) continue;
@@ -62,7 +62,6 @@ function Concatenation( sourceDir, destinDir ) {
 			result = result.substring(1, result.length - 1).replace(/\./g, "/") + ".js";
 			processFile(sourceDir + result, updateFile, result);
 		}
-
 
 		reg = /fm.Implements\((.*?)\)/gi;
 		if (result = reg.exec(d)) {
@@ -85,7 +84,11 @@ function Concatenation( sourceDir, destinDir ) {
 			isConcatinatedAdded = true;
 			concatenatedString += "\nfm.isConcatinated = true; \n fm.version=" + fileVersion + ";\n";
 		}
-		concatenatedString += data + "\n";
+		if (data.indexOf("\/\/\/concatelocation\/\/\/") !== -1) {
+			concatenatedString = data.replace("\/\/\/concatelocation\/\/\/", concatenatedString);
+		} else {
+			concatenatedString += data + "\n";
+		}
 		return data;
 	}
 
