@@ -3,7 +3,7 @@ var UglifyJS = require("uglify-js");
 var commander = require('commander');
 var uglifyjs =  require("uglify-js");
 var IncludedInside = [], circulerReference = {};
-
+var l = console.log
 function mkdir( path, root ) {
 	if (!path) {
 		return;
@@ -25,7 +25,6 @@ function Concatenation( sourceDir, destinDir ) {
 	function executeFile( data, updateFile, path_file1 ) {
 		var result, classIndex = 0;
 		var d = data.replace(/\s/g, ""), reg;
-
 		if (d.indexOf("prototype.$add=function(obj,key,val,isConst)") != -1) {
 			concatenatedString += data;
 			return data;
@@ -34,9 +33,21 @@ function Concatenation( sourceDir, destinDir ) {
 		if (result) {
 			classIndex = result.index;
 			result = result[1];
-			result = result.substring(1, result.length - 1).split(",")[1];
+			var temp = result.replace(/"/g, "").split(">");
+			if(temp.length === 2) {
+				result = temp[1].match(/(.*?),/)[0].replace(/\s|,/g,"");
+			}
+			else {
+				result = result.substring(1, result.length - 1).split(",")[1];
+				if(result && result.indexOf('function') !== -1) {
+					result = null;
+				}
+				if(result) {
+					result = result.substring(1).trim();
+				}
+			}
 			if (result) {
-				result = result.substring(1).trim().replace(/\./g, "/") + ".js";
+				result = result.replace(/\./g, "/") + ".js";
 				processFile(sourceDir + result, updateFile, result);
 			}
 		}
@@ -159,6 +170,11 @@ function Concatenation( sourceDir, destinDir ) {
 		mkdir(dFile.substring(0, dFile.lastIndexOf("/")), destinDir);
 		console.log("saveminiFied", destinDir, dFile);
 		//if(!jsp) {console.log("fg");return;}
+		
+		fs.writeFileSync(destinDir + dFile.replace(".js", ".js") + "min.js", data, 'utf8',
+			function(e) {
+				console.log(e);
+		});
 		var final_code = UglifyJS.minify(data, {fromString: true}); // parse code and get the initial AST
 		final_code = data + ";\nfm.isMinified=true;\n";
 		fs.writeFileSync(destinDir + dFile.replace(".js", ".js") + "min.js", final_code, 'utf8',
@@ -193,28 +209,59 @@ function createJFM( lastRun ) {
 		if (result = reg.exec(d)) {
 			//console.log("result",result);
 			result = result[1];
-			result = result.substring(1, result.length - 1).split(",")[1];
+			var temp = result.replace(/"/g, "").split(">");
+			if(temp.length === 2) {
+				result = temp[1].match(/(.*?),/)[0].replace(/\s|,/g,"");
+			}
+			else {
+				result = result.substring(1, result.length - 1).split(",")[1];
+				if(result && result.indexOf('function') !== -1) {
+					result = null;
+				}
+				if(result) {
+					result = result.substring(1).trim();
+				}
+			}
 			if (result) {
-				result = result.substring(1).split(".");
+				result = result.replace(/\./g, "/") + ".js";
 				imports.push(result[result.length - 1]);
+
 			}
 		}
 		reg = /fm.abstractclass\((.*?)\)/gi;
-				if (result = reg.exec(d)) {
-					//console.log("result",result);
-					result = result[1];
-					result = result.substring(1, result.length - 1).split(",")[1];
-					if (result) {
-						result = result.substring(1).split(".");
-						imports.push(result[result.length - 1]);
-					}
+		if (result = reg.exec(d)) {
+			//console.log("result",result);
+			result = result[1];
+			var temp = result.replace(/"/g, "").split(">");
+			if(temp.length === 2) {
+				result = temp[1].match(/(.*?),/)[0].replace(/\s|,/g,"");
+			}
+			else {
+				result = result.substring(1, result.length - 1).split(",")[1];
+				if(result && result.indexOf('function') !== -1) {
+					result = null;
+				}
+				if(result) {
+					result = result.substring(1).trim();
+				}
+			}
+			if (result) {
+				result = result.replace(/\./g, "/") + ".js";
+				imports.push(result[result.length - 1]);
+
+			}
 		}
 		if (add) {
-			reg = /=\s*function\s*\((.*?){/mi;
-			return data.replace(reg, "= function (" + imports.join(", ") + "){this.setMe=function(_me){me=_me;};");
+			reg = /(=|,)\s*function\s*\((.*?){/mi;
+			return data.replace(reg, function (){
+				return arguments[1]+" function (" + imports.join(", ") + "){this.setMe=function(_me){me=_me;};"
+			});
+		}else {
+			reg = /(=|,)\s*function\s*\((.*?)\)/mi;
+			return data.replace(reg, function  () {
+				return arguments[1] +" function (" + imports.join(", ") + ")"
+			});
 		}
-		reg = /=\s*function\s*\((.*?)\)/mi;
-		return data.replace(reg, "= function (" + imports.join(", ") + ")");
 	}
 
 	this.create = function( sFile, d ) {
