@@ -1,7 +1,7 @@
 {
   "name": "jsfm-concatenator",
   "description": "Concatenate all js in one",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "keywords": [
     "javascript",
 	"file",
