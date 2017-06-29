@@ -1,7 +1,6 @@
 var fs = require('fs');
-var UglifyJS = require("uglify-js");
 var commander = require('commander');
-var uglifyjs =  require("uglify-js");
+var uglifyjs =  require("uglify-es");
 var IncludedInside = [], circulerReference = {};
 var l = console.log
 function mkdir( path, root ) {
@@ -175,8 +174,8 @@ function Concatenation( sourceDir, destinDir ) {
 			function(e) {
 				console.log(e);
 		});
-		var final_code = UglifyJS.minify(data, {fromString: true}); // parse code and get the initial AST
-		final_code = data + ";\nfm.isMinified=true;\n";
+		var final_code = UglifyJS.minify(data); // parse code and get the initial AST
+		final_code = final_code.code + ";\nfm.isMinified=true;\n";
 		fs.writeFileSync(destinDir + dFile.replace(".js", ".js") + "min.js", final_code, 'utf8',
 			function(e) {
 				console.log(e);

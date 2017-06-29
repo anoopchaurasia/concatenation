@@ -15,7 +15,7 @@
     "email": "anoop26667@gmail.com"
   },
   "dependencies": {
-    "uglify-js": "*",
+    "uglify-es": "*",
     "commander": "*"
   },
   "main" : "concate.js"
